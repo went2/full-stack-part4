@@ -101,6 +101,238 @@ Restful HTTP API 的约定俗成：
 
 将整个应用的代码按照第一部分的要求进行模块化。
 
+### 测试 Node 应用 
+
+测试函数放到 `utils/` 文件夹下，在文件的最后进行导出。
+
+用 Facebook 的 jest 测试库进行测试，`npm install --save-dev jest`，安装完成后修改快捷启动并在 package.json 文件最后添加环境node环境指定：
+```js
+"script" :{
+	//...
+	"test": "jest --verbose"
+}
+
+
+// 在 package.json 文件最后添加
+{
+	//...
+	"jest": {
+		"testEnvironment": "node"
+	}
+}
+```
+
+指定环境也可以这样操作，新建名为 `jest.config.js`的配置文件，在里面定义执行环境，Jest 会自动配置文件中的设置 ：
+```js
+module.exports = {
+	testEnvironment: 'node'
+}
+```
+
+建立单路的目录用于测试如 tests，里面放置测试文件，如 palindrome.test.js，测试文件需要有.test 的后缀
+
+测试文件的典型格式：
+```js
+const average = require('../utils/for_testing').average
+
+describe('average', () => {
+  test('of one value is the value itself', () => {
+    expect(average([1])).toBe(1)
+  })
+
+  test('of many is calculated right', () => {
+    expect(average([1, 2, 3, 4, 5, 6])).toBe(3.5)
+  })
+
+  test('of empty array is zero', () => {
+    expect(average([])).toBe(0)
+  })
+})
+
+```
+
+`describe` 块用于包裹测试用例，测试用例用 `test` 函数定义，函数第一个参数是用来描述测试的字符串，第二个参数是函数，定义测试功能。第二个函数的一般是以下格式：先执行待测试的函数，然后用 `expect` 函数验证测试结果，`expect` 函数会把测试结果包裹在对象中，该对象提供一系列用于匹配正确结果的函数，如`toBe`。
+
+写完后执行 `npm test`，jest 会显示测试结果。
+
+
+
+
+#### 4.3 帮助函数及单元测试 步骤一
+
+写一个dummy 测试函数，使之通过以下验证：
+```js
+test('dummy returns one', () => {
+  const blogs = []
+
+  const result = listHelper.dummy(blogs)
+  expect(result).toBe(1)
+})
+```
+
+参数是一个数组，返回数字1。
+
+#### 4.4 帮助函数及单元测试 步骤二
+
+写一个 `totalLikes`函数，接收 blog 列表作为参数，返回所有blog中的点赞数。
+
+测试用例分三种情况：
+1. 空列表返回0；
+2. 只有一个blog时，点赞数量即改blog的点赞数；
+3. 有多个blog，正确返回它们的点赞数之和。
+
+blog列表的格式：
+```js
+const listWithOneBlog = [
+    {
+      _id: '5a422aa71b54a676234d17f8',
+      title: 'Go To Statement Considered Harmful',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+      likes: 5,
+      __v: 0
+    }
+  ]
+```
+
+只运行某一条测试：
+
+`npm test -- -t 'when list has only one blog, equals the likes of that'`
+
+#### 4.5 帮助函数及单元测试 步骤三
+
+写一个 `favoriteBlog` 函数，接收一个blogs 列表作为参数，找到其中最多点赞的blog，如果有多个最多喜欢，返回其中一个即可。
+
+返回的格式：
+```js
+{
+  title: "Canonical string reduction",
+  author: "Edsger W. Dijkstra",
+  likes: 12
+}	
+```
+
+由于 toBe 方法只能比较两个值，比较对象用 toEqual 方法。在新的 describe 块中测试该函数。
+
+可以从数组排序的角度来解这个题，根据对象的某个属性值大小，对一个由对象构成的数据进行排序。
+
+用到数组的 sort()方法：
+```js
+// sort()接受一个回调函数
+// 回调函数的参数是两个待比较的元素，需要返回数值。返回的数值大于0，则 b 在前。
+// list.sort((a,b) => a-b)，小的在前，返回升序排列的原数组。
+// 用slice()返回原数组的拷贝
+
+list.slice().sort((a, b) => (a.likes > b.likes ? -1 : 1))
+```
+
+#### 4.6 帮助函数及单元测试 步骤4-5
+
+一、写一个 `mostBlogs`函数，接收 blogs 列表作为参数，返回拥有最多blogs 的作者，返回格式如下：
+
+```js
+{
+	author: "Robert C. Martin",
+	blogs: 3
+}
+
+```
+
+可以考虑使用 `Lodash` 库。
+
+blogs 列表中的每一个对象即表示一个blog，因此可以遍历这个数组，找出其中所有的作者及次数，形成一个作者名称列表，统计其中每个作者出现的次数，找出次数最多者及次数即可。
+
+```js
+
+const authorsArr = blogs.map(blog => blog.author);
+// 得到数组：['haha', 'abd', 'abd', 'haha', 'haha']
+
+const authorObj = _.countBy(authorsArr);
+// 统计数组中元素出现的频率，用了Lodash库，得到对象 {abd: 2, haha: 3}
+
+return Object.keys(authorsObj).reduce((a, b) => authorsObj[a] > authorsObj[b] 
+? {author:a, likes:authorsObj[a]} 
+: {author:b, likes:authorsObj[b]});
+// 返回{ author: "haha", likes: 3 }
+
+```
+
+二、写一个 `mostlikes`函数，接收 blogs 列表作为参数，返回拥有最多 likes 的作者，返回格式如下：
+
+```js
+{
+	author: "Edsger W. Dijkstra",
+	likes: 17 
+}
+
+```
+
+第二题，一种思路是对blogs 数组下手。哪怕人工统计，也可以找出数组中每个对象的 author 和对应的 likes，单独写到一个地方。可以迭代这个blogs数组，把这对数据单独保存到一个新建对象中。
+
+```js
+const blogs = [{author:'Andy', likes:12},{author:'Andy', likes:2},{author:'Bob', likes:24},{author:'Lucy', likes:9},{author:'Lucy', likes:19}]
+
+// 1.获得去重后的作者列表，用_.uniq()方法对数组去重
+let authorArr = _.uniq(blogs.map(blog => blog.author));
+let allLikes = {};
+
+// 2.allLikes 单独保存作者的所有赞，使最初的赞数为0
+for(let i=0, len=authorArr.length;i<len;i++) {
+	allLikes[authorArr[i]] = 0;
+}
+
+for (let i=0,len=blogs.length;i<len;i++){
+	allLikes[blogs[i].author] += blogs[i].likes; 
+}
+
+// 得到结果{Andy: 14, Bob: 24, Lucy: 28}
+// 3.找出对象中具有最大值的属性。最后两步可连起来写在 reduce 函数内
+const mostLikesAuthor = authorArr.reduce((a,b) => allLikes[a] > allLikes[b] ? a : b);
+
+return {
+	author: mostLikesAuthor,
+	likes: allLikes[mostLikesAuthor]
+}
+
+```
+
+测试的时候一直在第二步遇到问题，如果不把 allLikes 设置好初始三个为0的属性值，让它直接在 for 循环中新增属性并增加属性值的话，循环结束后 allLikes 就是这样 { Andy: NaN, Bob: NaN, Lucy: NaN }，看来新增属性与修改属性值不能放在一步操作。
+
+还有一种做法应该可行，但是我测试时一直没通过：
+在 for 循环中增加判断，如果属性存在，则修改它，如果不存在则设为0。
+
+判断对象中是否有某个属性的三个方法：
+```js
+// 1.hasOwnProperty() 
+const hero = {
+  name: 'Batman'
+};
+
+hero.hasOwnProperty('name');     // => true
+hero.hasOwnProperty('realName'); // => false
+
+// 2. in 操作符
+// in 操作符会检查对象和它的原型链，如果能找到属性，就返回true
+const hero = {
+  name: 'Batman'
+};
+
+'toString' in hero;              // => true
+hero.hasOwnProperty('toString'); // => false
+
+// 3.和 undefined 比较，不存在的属性，其值返回 undefined
+// 但是，如果属性存在，其值为undefined，这个方法就失效了
+const hero = {
+  name: 'Batman'
+};
+hero.name !== undefined;     // => true
+hero.realName !== undefined; // => false
+
+```
+
+
+
+
 
 
 
