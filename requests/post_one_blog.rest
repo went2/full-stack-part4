@@ -1,9 +1,9 @@
-POST http://localhost:1222/api/blogs
+POST http://localhost:1333/api/blogs
 Content-Type: application/json
 
 {
   "title": "How to create your first app using React part 2",
-  "authot": "James Fisher",
+  "author": "James Fisher",
   "url": "www.google.com",
   "likes": 4
 }

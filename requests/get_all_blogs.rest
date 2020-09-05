@@ -1,1 +1,1 @@
-GET http://localhost:1222/api/blogs
+GET http://localhost:1333/api/blogs

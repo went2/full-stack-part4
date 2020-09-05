@@ -24,7 +24,6 @@ modules.exports = blogsRouter;
 `app.js` 用来作各种调用，如连接数据库、使用中间件等。除了 `app.js` 文件以外，其他文件都是声明类型的，做各种定义并导出，然后在app中导入并执行异步操作。
 
 
-
 ### 练习 4.1 - 4.2
 
 本章练习要构建一个博客列表应用，允许用户保存从互联网摘录的博客，每条博客信息包括作者、标题、url 以及 用户的点赞数。
@@ -267,7 +266,7 @@ return Object.keys(authorsObj).reduce((a, b) => authorsObj[a] > authorsObj[b]
 
 ```
 
-第二题，一种思路是对blogs 数组下手。哪怕人工统计，也可以找出数组中每个对象的 author 和对应的 likes，单独写到一个地方。可以迭代这个blogs数组，把这对数据单独保存到一个新建对象中。
+第二题，一种思路是对 blogs 数组下手。哪怕人工统计，也可以找出数组中每个对象的 author 和对应的 likes，单独写到一个地方。可以迭代这个blogs数组，把这对数据单独保存到一个新建对象中。
 
 ```js
 const blogs = [{author:'Andy', likes:12},{author:'Andy', likes:2},{author:'Bob', likes:24},{author:'Lucy', likes:9},{author:'Lucy', likes:19}]
@@ -330,6 +329,16 @@ hero.realName !== undefined; // => false
 
 ```
 
+参考资料：
+
+[1.从对象组成的列表中找到最大值最小值](https://codeburst.io/javascript-finding-minimum-and-maximum-values-in-an-array-of-objects-329c5c7e22a2)
+
+
+[2.freeCodeCampe 的对象数组教程](https://www.freecodecamp.org/news/javascript-array-of-objects-tutorial-how-to-create-update-and-loop-through-objects-using-js-array-methods/amp/)
+这篇文章很有趣，有空翻一下，名字取好了“这么多对象的数组，我该怎么办？”
+
+[3. Lodash 官方文档](https://lodash.com/docs/4.17.15)
+这次用到` _.countBy` 来统计数组中元素出现的频率和 `_.uniq`返回一个去重了的数组。
 
 
 
