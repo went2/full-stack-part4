@@ -28,4 +28,27 @@ blogsRouter.post('/blogs', async (req, res) => {
   res.status(201).json(result);
 });
 
+blogsRouter.delete('/blogs/:id', async (req, res) => {
+  await Blog.findByIdAndDelete(req.params.id);
+  res.status(204).end();
+});
+
+blogsRouter.put('/blogs/:id', async (req, res) => {
+  const body = req.body;
+  // console.log('接收到的待更新blog', body);
+  // console.log('接收到的待更新blog的id是', req.params.id);
+
+  const newBlog = {
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes
+  };
+
+  const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, newBlog, { new: true });
+
+  // console.log('服务器返回的更新后的对象是', updatedBlog);
+  res.json(updatedBlog);
+});
+
 module.exports = blogsRouter;

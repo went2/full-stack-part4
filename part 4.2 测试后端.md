@@ -290,7 +290,7 @@ POST 请求主体的对象一直固定不变，一个简单对象：
   };
 ```
 
-在服务器POST路由处理函数中，把接收到的请求body打印出来，并用 mongoose schema 实例化，然后判断实例化后对象中的属性存在情况：
+在服务器POST路由处理函数中，把接收到的请求body打印出来，并用 Models: Blog 实例化，然后判断实例化后对象中的属性存在情况：
 
 1. 测试对象中没有的属性 title：
 
@@ -318,7 +318,7 @@ blogsRouter.post('/blogs', async (req, res) => {
 
 `hasOwnProperty`给出了 `false` 判断，`in`操作符和 `typeof(blog.title) !== undefined` 给出了 `true`
 
-写着写着想到，为什么要用mongoose Schema 的实例对象来测？
+写着写着想到，为什么要用mongoose Models 的实例对象来测？
 于是换成请求 body 对象进行测试。
 
 3. 测试不存在的属性 title
@@ -346,7 +346,82 @@ blogsRouter.post('/blogs', async (req, res) => {
 【二、检查对象某个属性是否存在，首选 hasOwnProperty 方法】
 
 有疑问：
-为什么 new 出来的 mongoose Schema 对象用来做属性判断时有问题？
+为什么 Model 实例对象用来做属性判断时有问题？
+可能是因为通过 Models 实例化后成了数据库的 ducoment，和纯 js 的对象就不一样了。
+
+### 八、练习 4.13-4.14 
+
+#### 4.13 为应用配置删除功能的路由处理
+
+单元测试写法参考：
+```js
+  test('删除成功，返回204', async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204);
+    
+    const blogsAtEnd = await helper.blogsInDb();
+    expect(blogsAtEnd).toHaveLength(blogsAtStart.length - 1);
+
+    const titles = blogsAtEnd.map(blog => blog.title);
+    expect(titles).not.toContain(blogToDelete.title);
+
+  });
+```
+对应的路由处理函数：
+```js
+blogsRouter.delete('/blogs/:id', async (req, res) => {
+  console.log('接受到的请求id是', req.params);
+  
+  await Blog.findByIdAndDelete(req.params.id);
+  res.status(204).end();
+});
+```
+
+注意，在请求中将 `id` 发送给后端时，路由处理函数的回调函数中的 req.params 是类似于：{ id: '5rf23derh66565'} 的对象，所以要把该对象的id 属性拿出来作为参数传递： `req.params.id`
+
+
+
+#### 4.14 为应用配置更新功能的路由处理
+
+遇到的问题：
+
+进行 Jest 单元测试时有时遇到以下问题：
+一、Jest did not exit one second after the test run has completed.
+> Jest did not exit one second after the test run has completed.
+> This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.
+
+可能是因为测试时链接了数据库，完成后没有关闭，解决办法：
+在测试文件底部 `afterAll` 函数添加 `done`参数，并最后呼叫`done()`即可：
+
+```js
+afterAll(done => {
+  mongoose.connection.close();
+  done();
+});
+```
+
+二、异步调用的延迟问题
+> Async callback was not invoked within the 5000ms timeout specified by jest.setTimeout
+
+解决办法：StackOverflow的上的[回答](https://stackoverflow.com/questions/49603939/async-callback-was-not-invoked-within-the-5000ms-timeout-specified-by-jest-setti)，设置 jest 的延迟为 30000，
+```js
+// jest.config.js
+module.exports = {
+  // setupTestFrameworkScriptFile has been deprecated in
+  // favor of setupFilesAfterEnv in jest 24
+  setupFilesAfterEnv: ['./jest.setup.js']
+}
+
+// jest.setup.js
+jest.setTimeout(30000)
+```
+
+
+
 
 
 

@@ -13,8 +13,7 @@ beforeEach(async () => {
   const blogObjects = helper.initialBlogs.map(blog => new Blog(blog));
   const promiseArray = blogObjects.map(blog => blog.save());
   await Promise.all(promiseArray);
-
-  console.log('初始化测试数据库成功');
+  
 });
 
 describe('Get /api/blogs：初始blogs条目', () => {
@@ -33,7 +32,7 @@ describe('Get /api/blogs：初始blogs条目', () => {
     const response = await api.get('/api/blogs');
     expect(response.body[0].id).toBeDefined();
   }, 30000);
-});
+}, 30000);
 
 describe('POST /api/blogs', () => {
   test('POST一条blog后总数加1', async () => {
@@ -70,14 +69,56 @@ describe('POST /api/blogs', () => {
     "author": "James Fisher",
     "likes": 10
   };
-  const response = await api.post('/api/blogs').send(newBlog);
-  // console.log(response);
-  expect(response.statusCode).toBe(400);
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400);
 }, 30000)
 
 });
 
+describe('删除和更新', () => {
+  test('删除成功，返回204', async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToDelete = blogsAtStart[0];
+    console.log('将要删除的blog是', blogToDelete, '其id是',blogToDelete.id )
 
-afterAll(() => {
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204);
+    
+    const blogsAtEnd = await helper.blogsInDb();
+    expect(blogsAtEnd).toHaveLength(blogsAtStart.length - 1);
+
+    const titles = blogsAtEnd.map(blog => blog.title);
+    expect(titles).not.toContain(blogToDelete.title);
+
+  });
+
+  test('返回更新后的blog', async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
+    
+    const newBlog = {
+      author: blogToUpdate.author,
+      title: blogToUpdate.title,
+      url: blogToUpdate.url,
+      likes: blogToUpdate.likes + 1
+    }
+
+    const response = await api.put(`/api/blogs/${blogToUpdate.id}`).send(newBlog);
+    const updatedBlog = response.body;
+
+    // console.log('测试端接收到的更新后的对象是：', updatedBlog);
+    
+    expect(updatedBlog.likes).toBe(newBlog.likes);
+
+  });
+
+});
+
+
+afterAll(done => {
   mongoose.connection.close();
+  done();
 });
