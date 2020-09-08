@@ -387,6 +387,46 @@ blogsRouter.delete('/blogs/:id', async (req, res) => {
 
 #### 4.14 为应用配置更新功能的路由处理
 
+单元测试写法参考：
+```js
+  test('返回更新后的blog', async () => {
+    const blogsAtStart = await helper.blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
+    
+    const newBlog = {
+      author: blogToUpdate.author,
+      title: blogToUpdate.title,
+      url: blogToUpdate.url,
+      likes: blogToUpdate.likes + 1
+    }
+
+    const response = await api.put(`/api/blogs/${blogToUpdate.id}`).send(newBlog);
+    const updatedBlog = response.body;
+
+    expect(updatedBlog.likes).toBe(newBlog.likes);
+  });
+```
+
+对应的路由处理函数参考：
+```js
+blogsRouter.put('/blogs/:id', async (req, res) => {
+  const body = req.body;
+  
+  const newBlog = {
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes
+  };
+
+  const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, newBlog, { new: true });
+  
+  res.json(updatedBlog);
+});
+```
+
+注：后端`res.json(updatedBlog)`返回的是个 Respon 对象，用 `Respon.body` 获取其中的 blog 对象
+
 遇到的问题：
 
 进行 Jest 单元测试时有时遇到以下问题：
