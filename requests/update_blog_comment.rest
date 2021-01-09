@@ -1,0 +1,14 @@
+PUT http://localhost:3003/api/blogs/5f64fa477bb83426602f84f9/comments
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWQiOiI1ZjU3NDU2ZWUzODRhYTdlYjI4ZDczZjAiLCJpYXQiOjE1OTk1NzIxOTl9.Z7Hq9tBt10ALXTwkWUYr1DhXQhPKhSc2O6899Yx1ur8
+
+{
+  "blog": {
+    "title": "编程珠玑",
+    "author": "Jon Bentley",
+    "url": "https://book.douban.com/subject/3227098/",
+    "likes": 10,
+    "comments": []
+  },
+  "comment": "very good"
+}
